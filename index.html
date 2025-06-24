@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GreenLeaf Loyalty Tracker</title>
+  <style>
+    :root {
+      --primary: #4a90e2;
+      --accent: #f1c40f;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --bg: #f9fafc;
+      --text: #333;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 20px;
+      color: var(--text);
+    }
+    header {
+      text-align: center;
+      background: var(--primary);
+      color: #fff;
+      padding: 20px;
+      font-size: 28px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    main {
+      max-width: 700px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+    input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #357ABD;
+    }
+    .danger-btn {
+      background: var(--danger);
+    }
+    .danger-btn:hover {
+      background: #c0392b;
+    }
+    .success {
+      color: var(--success);
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    tr:hover {
+      background: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <header>GreenLeaf Loyalty Tracker</header>
+  <main>
+    <input type="text" id="customer" placeholder="Enter customer phone/email">
+    <button onclick="addVisit()">Add Visit</button>
+
+    <input type="text" id="search" placeholder="Search customer" oninput="updateTable()">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Points</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="customerTable"></tbody>
+    </table>
+  </main>
+
+  <script>
+    const POINTS_FOR_REWARD = 10;
+
+    function loadData() {
+      return JSON.parse(localStorage.getItem("loyaltyData")) || {};
+    }
+
+    function saveData(data) {
+      localStorage.setItem("loyaltyData", JSON.stringify(data));
+    }
+
+    function addVisit() {
+      const input = document.getElementById("customer");
+      const id = input.value.trim();
+      if (!id) {
+        alert("Please enter a customer identifier.");
+        return;
+      }
+
+      let data = loadData();
+      if (!data[id]) {
+        data[id] = 0;
+      }
+
+      data[id]++;
+      saveData(data);
+      input.value = "";
+      updateTable();
+    }
+
+    function resetPoints(customer) {
+      if (confirm(`Reset points for ${customer}?`)) {
+        let data = loadData();
+        data[customer] = 0;
+        saveData(data);
+        updateTable();
+      }
+    }
+
+    function updateTable() {
+      const data = loadData();
+      const tbody = document.getElementById("customerTable");
+      const search = document.getElementById("search").value.toLowerCase();
+      tbody.innerHTML = "";
+
+      Object.entries(data).forEach(([customer, points]) => {
+        if (customer.toLowerCase().includes(search)) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${customer}</td>
+            <td>${points}</td>
+            <td>${points >= POINTS_FOR_REWARD ? '<span class="success">Free Coffee!</span>' : ''}</td>
+            <td><button class="danger-btn" onclick="resetPoints('${customer}')">Reset</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    // Initialize table on load
+    updateTable();
+  </script>
+</body>
+</html>
